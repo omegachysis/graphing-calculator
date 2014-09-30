@@ -1,4 +1,6 @@
 
+import elements
+
 def preprocessExpression(expression):
     """
     Process the beginnings of an expression to a form
@@ -37,7 +39,41 @@ def preprocessExpression(expression):
     # turn the whole expression into a large quantity
     expression = "(" + expression + ")"
 
+    # match starting and closing parantheses
+    leftParens = expression.count("(")
+    rightParens = expression.count(")")
+    expression = expression + ")" * leftParens - rightParens
+
     return expression
+
+def parseExpression(expression):
+    """
+    Preprocess expression and convert it
+    into Elements.
+    """
+    expression = preprocessExpression(expression)
+
+    elems = []
+
+    # search for parentheses
+    quantityExpression = ""
+    inQuantity = False
+    for i in range(len(expression)):
+        char = expression[i]
+        if char == "(":
+            # keep going and find where the next closing parenthesis is
+            # when you find it, take the whole section of the expression
+            # and make a quantity out of it.
+            quantityExpression = ""
+            inQuantity = True
+        elif char == ")" and inQuantity:
+            elems.append(elements.Quantity(quantityExpression))
+
+        else:
+            if inQuantity:
+                quantityExpression += char
+
+
 
 def _test():
     test = preprocessExpression("5 - 4 * 8 + 90")

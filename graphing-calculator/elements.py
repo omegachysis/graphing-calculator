@@ -9,4 +9,6 @@ class Operator(object):
     pass
 
 class Quantity(object):
-    pass
+    expression = ""
+    def __init__(self, expression):
+        self.expression = expression
