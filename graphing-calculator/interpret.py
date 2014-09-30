@@ -74,9 +74,7 @@ def parseExpression(expression, preprocess=True):
                 if quantityLayer > 0:
                     quantityLayer -= 1
                 else:
-                    print("QUANTITY PARSE INPUT: ", value)
                     parseValue = parseExpression(value, False)
-                    print("QUANTITY PARSE: ", parseValue)
                     elems.append(parseValue)
                     mode = None
 
@@ -124,10 +122,10 @@ def parseExpression(expression, preprocess=True):
     return elements.Quantity(elems)
 
 def _test():
-    testExpression = "9*(1+2)"
+    testExpression = "-9/10 + (90+5)/(2+3.5)"
     print(testExpression)
     test = parseExpression(testExpression)
     print(test.elems)
     print(test.express())
-
-    print("Tests succeeded!")
+    print(eval(testExpression))
+    print(eval(test.express()))

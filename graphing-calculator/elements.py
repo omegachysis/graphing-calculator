@@ -16,11 +16,11 @@ class Fraction(object):
         self.numerator = numerator
         self.denominator = denominator
     def express(self):
-        expression = "[("
+        expression = "(("
         expression += self.numerator.express()
         expression += ")/("
         expression += self.denominator.express()
-        expression += ")]"
+        expression += "))"
         return expression
 
 class Operator(object):
