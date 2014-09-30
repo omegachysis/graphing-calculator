@@ -7,3 +7,6 @@ class Variable(object):
 
 class Operator(object):
     pass
+
+class Quantity(object):
+    pass
