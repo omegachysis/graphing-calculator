@@ -38,23 +38,13 @@ def preprocessExpression(expression):
             newExpression += "*1/"
     expression = newExpression
 
-    # turn the whole expression into a large quantity
-    expression = "(" + expression + ")"
+    ## turn the whole expression into a large quantity
+    #expression = "(" + expression + ")"
 
     # match starting and closing parantheses
     leftParens = expression.count("(")
     rightParens = expression.count(")")
     expression = expression + ")" * (leftParens - rightParens)
-
-    return expression
-
-def express(parsed):
-    """
-    Expresses a parsed set of data
-    """
-    expression = ""
-    for elem in parsed:
-        expression += elem.express()
 
     return expression
 
@@ -70,19 +60,31 @@ def parseExpression(expression, preprocess=True):
 
     mode = None
     value = ""
+    quantityLayer = 0
     for i,char in enumerate(expression+"\n"):
         if mode == "Number":
             if char in string.digits + "." + "-":
                 value += char
+                mode = "Number"
             else:
                 elems.append(elements.Number(value))
                 mode = None
         elif mode == "Quantity":
             if char == ")":
-                parseValue = parseExpression(value, False)
-                elems.append(elements.Quantity(parseValue))
+                if quantityLayer > 0:
+                    quantityLayer -= 1
+                else:
+                    print("QUANTITY PARSE INPUT: ", value)
+                    parseValue = parseExpression(value, False)
+                    print("QUANTITY PARSE: ", parseValue)
+                    elems.append(parseValue)
+                    mode = None
+
             else:
+                if char == "(":
+                    quantityLayer += 1
                 value += char
+                mode = "Quantity"
 
         if mode == None:
             value = ""
@@ -91,10 +93,13 @@ def parseExpression(expression, preprocess=True):
                 value += char
             elif char in ["*", "+", "/"]:
                 elems.append(elements.Operator(char))
+                mode = None
             elif char in string.ascii_letters:
                 elems.append(elements.Variable(char))
+                mode = None
             elif char == "(":
                 mode = "Quantity"
+                quantityLayer = 0
 
     # look for division operators
     # we can turn all of those operators into working fractions
@@ -116,18 +121,13 @@ def parseExpression(expression, preprocess=True):
 
     elems = list(newElems)
 
-    return elems
+    return elements.Quantity(elems)
 
 def _test():
-    test = preprocessExpression("5 - 4 * 8 + 90")
-    assert test == "(5+-1*4*8+90)", "test failed: %s"%repr(test)
-    test = preprocessExpression("-9 * 50 - 100 / 5")
-    assert test == "(-1*9*50+-1*100*1/5)", "test failed: %s"%repr(test)
-
-    testExpression = "5/8"
+    testExpression = "9*(1+2)"
     print(testExpression)
     test = parseExpression(testExpression)
-    print(test[0].elems)
-    print(express(test))
+    print(test.elems)
+    print(test.express())
 
     print("Tests succeeded!")
