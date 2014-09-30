@@ -1,12 +1,16 @@
 
 class Number(object):
-    pass
+    expression = ""
+    def __init__(self, expression):
+        self.expression = expression
 
 class Variable(object):
     pass
 
 class Operator(object):
-    pass
+    symbol = ""
+    def __init__(self, symbol):
+        self.symbol = symbol
 
 class Quantity(object):
     expression = ""
