@@ -19,7 +19,10 @@ def preprocessExpression(expression):
         if char != "-":
             newExpression += char
         else:
-            newExpression += "+" + "-1*"
+            if expression[i-1] == "*":
+                newExpression += "-1*"
+            else:
+                newExpression += "+" + "-1*"
     expression = newExpression
 
     # remove any beginning addition operators
@@ -45,26 +48,44 @@ def preprocessExpression(expression):
 
     return expression
 
-def parseExpression(expression):
+def express(parsed):
+    """
+    Expresses a parsed set of data
+    """
+    expression = ""
+    for elem in parsed:
+        expression += elem.express()
+
+    return expression
+
+def parseExpression(expression, preprocess=True):
     """
     Preprocess expression and convert it
     into Elements.
     """
-    expression = preprocessExpression(expression)
+    if preprocess:
+        expression = preprocessExpression(expression)
 
     elems = []
 
     mode = None
     value = ""
-    for i,char in enumerate(expression):
+    for i,char in enumerate(expression+"\n"):
         if mode == "Number":
             if char in string.digits + "." + "-":
                 value += char
             else:
                 elems.append(elements.Number(value))
                 mode = None
+        elif mode == "Quantity":
+            if char == ")":
+                parseValue = parseExpression(value, False)
+                elems.append(elements.Quantity(parseValue))
+            else:
+                value += char
 
         if mode == None:
+            value = ""
             if char in string.digits + "." + "-":
                 mode = "Number"
                 value += char
@@ -72,19 +93,30 @@ def parseExpression(expression):
                 elems.append(elements.Operator(char))
             elif char in string.ascii_letters:
                 elems.append(elements.Variable(char))
+            elif char == "(":
+                mode = "Quantity"
 
-    print(elems)
+    # look for division operators
+    # we can turn all of those operators into working fractions
+    newElems = []
 
-    ## search for parentheses
-    #for i, char in enumerate(expression):
-    #    if char == "(":
-    #        minIndex = int(i)
-    #        # search backwards for the cooresponding parenthesis
-    #        for e, echar in enumerate(reversed(expression)):
-    #            if echar == ")":
-    #                maxIndex = int(e)
-    #        # replace that expression section with a quantity
-    #        elems = [expression[:minIndex]
+    skip = 0
+    for i,elem in enumerate(elems):
+        if skip == 0:
+            if isinstance(elem, elements.Operator) and elem.symbol == "/":
+                numerator = elems[i-1]
+                denominator = elems[i+1]
+                newElems.pop()
+                newElems.append(elements.Fraction(numerator, denominator))
+                skip += 1
+            else:
+                newElems.append(elem)
+        else:
+            skip -= 1
+
+    elems = list(newElems)
+
+    return elems
 
 def _test():
     test = preprocessExpression("5 - 4 * 8 + 90")
@@ -92,6 +124,10 @@ def _test():
     test = preprocessExpression("-9 * 50 - 100 / 5")
     assert test == "(-1*9*50+-1*100*1/5)", "test failed: %s"%repr(test)
 
-    test = parseExpression("-5 * 8")
+    testExpression = "5/8"
+    print(testExpression)
+    test = parseExpression(testExpression)
+    print(test[0].elems)
+    print(express(test))
 
     print("Tests succeeded!")
